@@ -1,4 +1,5 @@
-use std::sync::{Mutex, OnceLock, mpsc};
+use std::sync::{Arc, Mutex, OnceLock, mpsc};
+use std::thread;
 use macroquad::prelude::*;
 
 struct TurtleInfo {
@@ -7,7 +8,8 @@ struct TurtleInfo {
     rotation: f32
 }
 
-struct Turtle {
+#[derive(Debug)]
+pub struct Turtle {
     id: usize
 }
 
@@ -18,11 +20,33 @@ static CHANNELS: OnceLock<(
     Mutex<mpsc::Receiver<RenderJob>>
 )> = OnceLock::new();
 
-static TURTLES: OnceLock<Mutex<Vec<TurtleInfo>>> = OnceLock::new();
+static TURTLES: OnceLock<Arc<Mutex<Vec<TurtleInfo>>>> = OnceLock::new();
 
-fn turtles() -> &'static Mutex<Vec<TurtleInfo>> {
+static RENDER: OnceLock<thread::JoinHandle<()>> = OnceLock::new();
+
+fn spawn_render() -> &'static thread::JoinHandle<()> {
+    RENDER.get_or_init(|| {
+        let turtles_handle = turtles().clone();
+        thread::spawn(move || {
+            macroquad::Window::new("The Final, Correct Solution", async move {
+                loop {
+                    clear_background(RED);
+                    let turtles_handle_async = turtles_handle.clone();
+                    let turtles_lock = turtles_handle_async.lock().unwrap();
+                    for turt in &*turtles_lock {
+                        draw_line(turt.x, turt.y, turt.x + 100.0, turt.y + 100.0, 10.0, BLACK);
+                        draw_fps();
+                    }
+                    next_frame().await;
+                }
+            });
+        })
+    })
+}
+
+fn turtles() -> &'static Arc<Mutex<Vec<TurtleInfo>>> {
     TURTLES.get_or_init(|| {
-        Mutex::new(Vec::new())
+        Arc::new(Mutex::new(Vec::new()))
     })
 }
 
@@ -43,12 +67,12 @@ impl Turtle {
             rotation: 0.0
         };
         turtles_vec.push(info);
+        let _ = spawn_render();
         Turtle { id: new_id }
     }
-    pub async fn set_pos(&self, x: f32, y: f32) {
+    pub fn set_pos(&self, x: f32, y: f32) {
         let turtle = &mut turtles().lock().unwrap()[self.id];
         turtle.x = x;
         turtle.y = y;
-        next_frame().await;
     }
 }
