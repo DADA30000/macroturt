@@ -8,7 +8,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      devShell = pkgs.mkShell {
+      devShell = pkgs.mkShell rec {
         buildInputs = with pkgs; [
            pkg-config 
            libx11 
@@ -17,6 +17,7 @@
            alsa-lib 
            libxkbcommon
         ];
+        LD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath buildInputs}";
       };
     }
   );

@@ -20,7 +20,6 @@ async fn main() {
     const MOVE_SPEED: f32 = 5000.0;
     //const ROTATION_SPEED: f32 = 4000.0;
     const FRICTION: f32 = 0.1;
-    let cursor_texture = svg_to_texture(&std::fs::read_to_string("cursor.svg").unwrap_or(String::from("<svg width=\"8000\" height=\"8000\" viewBox=\"0 0 8000 8000\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 4000 1000 L 2000 7000 L 3500 5500 L 4500 5500 L 6000 7000 Z\" fill=\"white\"/></svg>")));
     let desired_x: f32 = 1000.0;
     let desired_y: f32 = 100.0;
     loop {
