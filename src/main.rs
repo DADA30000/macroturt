@@ -1,29 +1,26 @@
 mod turt;
 mod svg;
 use turt::Turtle;
+use rand::random_range;
 fn main() {
-    let turtle = Turtle::new();
-    let mut counter: u64 = 0;
-    let _ = std::thread::spawn(move || {
-        let turtle2 = Turtle::new();
-        let mut counter_2: u64 = 0;
-        loop {
-            for i in 1..10 {
-                turtle2.set_pos(20.0 * i as f32, 20.0 * i as f32);
-                counter_2 = counter_2.wrapping_add(1);
-                if counter_2 % 30 == 0 {
-                    println!("loop2 {counter_2}");
-                }
+    for _ in 1..=100 {
+        let turtle = Turtle::new();
+        let _ = std::thread::spawn(move || {
+            loop {
+                let x = random_range(0.0..=30.0);
+                let y = random_range(0.0..=100.0);
+                let r = random_range(0.0..=1.0);
+                let g = random_range(0.0..=1.0);
+                let b = random_range(0.0..=1.0);
+                let size_x = random_range(10.0..=200.0);
+                let size_y = random_range(10.0..=200.0);
+                turtle.left(x);
+                turtle.forward(y);
+                turtle.set_color(r, g, b, 1.0);
+                turtle.set_size(size_x, size_y);
             }
-        }
-    });
+        });
+    }
     loop {
-        for i in 1..10 {
-            turtle.set_pos(20.0 * i as f32, 20.0 * i as f32);
-            counter = counter.wrapping_add(1);
-            if counter % 30 == 0 {
-                println!("loop {counter}");
-            }
-        }
     }
 }
